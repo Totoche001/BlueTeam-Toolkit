@@ -1,0 +1,53 @@
+{
+  "id": "ad_protection",
+  "name": "Protection d'Active Directory",
+  "version": "1.0",
+  "description": "Mesures de base pour sécuriser un environnement Active Directory.",
+  "tags": ["active_directory", "sécurité", "windows"],
+  "meta": {
+    "created_by": "admin",
+    "created_at": "2025-07-17"
+  },
+  "flow": [
+    {
+      "id": "audit",
+      "title": "Audit initial",
+      "type": "evidence",
+      "description": "Collecter les informations sur les comptes, GPO, délégations, etc.",
+      "long_description": "Utilisez `ADRecon`, `BloodHound`, ou `PingCastle` pour identifier les failles existantes.\nDocumentez les résultats dans un rapport.\nConsultez : <a href='https://pingcastle.com/'>PingCastle</a>",
+      "next": ["password"]
+    },
+    {
+      "id": "password",
+      "title": "Renforcer les mots de passe",
+      "type": "action",
+      "description": "Appliquer des politiques de mot de passe robustes.",
+      "long_description": "Mettez en place LAPS (Local Admin Password Solution).\nForcez la rotation régulière des mots de passe sensibles.\nVoir : <a href='https://learn.microsoft.com/fr-fr/windows-server/identity/laps/laps-overview'>Microsoft LAPS</a>",
+      "next": ["gpo"]
+    },
+    {
+      "id": "gpo",
+      "title": "Durcissement des GPO",
+      "type": "action",
+      "description": "Configurer les politiques de sécurité système.",
+      "long_description": "Désactiver SMBv1, limiter l'accès à PowerShell, interdire les connexions RDP non sécurisées.\nUtiliser des GPOs centralisées pour appliquer ces politiques.",
+      "next": ["monitoring"]
+    },
+    {
+      "id": "monitoring",
+      "title": "Surveillance & journalisation",
+      "type": "checkpoint",
+      "description": "Configurer la journalisation avancée.",
+      "long_description": "Activez les journaux de sécurité (4688, 4624, 4672, etc.).\nIntégrez les logs avec un SIEM comme Wazuh, Splunk ou Graylog.\nAssurez-vous que les journaux ne sont pas modifiables par les utilisateurs standards.",
+      "next": ["admin"]
+    },
+    {
+      "id": "admin",
+      "title": "Gestion des comptes privilégiés",
+      "type": "action",
+      "description": "Restreindre l’usage des comptes à privilèges.",
+      "long_description": "Séparer les comptes d’administration et d’usage quotidien.\nUtiliser l’approche « Just Enough Administration ».\nBloquer la connexion directe des comptes domain admin sur les stations de travail.",
+      "next": []
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="{{ url_for('static', filename='favicon.gif') }}">
+  <title>{{ workflow.name }} — Workflow</title>
+  <link rel="stylesheet" href="{{ static_url('style.css') }}" />
+
+</head>
+
+<body>
+
+  <header class="topbar">
+    <h1>{{ workflow.name }}</h1>
+    <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
+    <button id="edit-toggle">Modifier</button>
+    <button id="save-btn" style="display:none;">Sauvegarder</button>
+      <nav class="topnav">
+  <a href="{{ url_for('index') }}">Accueil</a>
+  <a href="{{ url_for('contact') }}">Contact</a>
+  <a href="javascript:history.back()">⬅ Retour</a>
+</nav>
+  </header>
+
+  <div class="container">
+
+    <!-- Mini-map barre latérale -->
+    <nav id="minimap" aria-label="Mini carte des étapes">
+      <ul>
+        {% for step in workflow.flow %}
+        <li data-step-id="{{ step.title }}" tabindex="0" class="minimap-step {{ 'optional' if step.optional else '' }}">
+          {{ loop.index }}. {{ step.label }}
+          <span class="step-id type-{{ step.title }}">{{ step.title }}</span>
+          {% if step.optional %}
+          <span class="optional-label">(optionnel)</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+
+    <main id="workflow-main">
+      {% for step in workflow.flow %}
+      <section class="step" id="step-{{ step.id }}" tabindex="0"
+        data-optional="{{ 'true' if step.optional else 'false' }}">
+        <div class="step-header">
+          <span class="step-type-badge type-{{ step.title }}">{{ step.title }}</span>
+          <h2 contenteditable="false" class="step-label">{{ step.label }}</h2>
+        </div>
+        <p contenteditable="false" class="step-desc">{{ step.description }}</p>
+
+        {% if step.long_description %}
+        <div class="step-longdesc">{{ step.long_description | default('') | replace('\n', '<br>') | safe }}</div>
+        {% endif %}
+
+        {% if step.code %}
+        <pre class="step-code">{{ step.code }}</pre>
+        {% endif %}
+
+        {% if step.images %}
+        <div class="step-images">
+          {% for img in step.images %}
+          <img src="{{ img }}" alt="Image étape {{ step.label }}">
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="step-next">
+          <strong>Étapes suivantes :</strong>
+          {% if step.next and step.next|length > 0 %}
+          {% for next_id in step.next %}
+          {% set next_step = workflow.flow | selectattr('id', 'equalto', next_id) | first %}
+          {% if next_step %}
+          <a href="#step-{{ next_step.id }}" class="step-link">
+            {{ next_step.title }}
+            <span class="step-type-badge type-{{ next_step.type|default('action') }}">{{
+              next_step.type|default('action') }}</span>
+          </a>{% if not loop.last %}, {% endif %}
+          {% else %}
+          <span>{{ next_id }}</span>{% if not loop.last %}, {% endif %}
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <span>Fin</span>
+          {% endif %}
+        </div>
+        <button class="remove-step-btn" style="display:none;">Supprimer étape</button>
+      </section>
+      {% endfor %}
+
+      <button id="add-step-btn" style="display:none;">Ajouter une étape</button>
+    </main>
+  </div>
+
+  <!--<div id="timeline" class="timeline-view"></div>-->
+
+<script>
+  //const WORKFLOW_DATA = {{ workflow | tojson | safe }};
+</script>
+  <!--<script src="{{ static_url('src/timeline.js') }}"></script>-->
+  <script src="{{ static_url('src/script.js') }}"></script>
+
+</body>
+
+</html>

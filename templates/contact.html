@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <h1>Workflows</h1>
+  <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
+  <a href="{{ url_for('new_workflow') }}" class="btn primary">+ Créer un workflow</a>
+  <nav class="topnav">
+  <a href="{{ url_for('index') }}">Accueil</a>
+  <a href="{{ url_for('contact') }}">Contact</a>
+  <a href="javascript:history.back()">⬅ Retour</a>
+</nav>
+</header>
+  <main class="content">
+    <ul>
+            <li>
+                <strong>Nom : </strong>
+                <span>Jean Dupont</span>
+            </li>
+            <li>
+                <strong>Email : </strong>
+                <a href="mailto:jean.dupont@example.com">jean.dupont@example.com</a>
+            </li>
+            <li>
+                <strong>Téléphone : </strong>
+                <span>06 12 34 56 78</span>
+            </li>
+        </ul>
+
+    <h1>Contact</h1>
+    <p>Vous pouvez nous contacter à l'adresse suivante :</p>
+    <p><strong>admin@example.com</strong></p>
+    <p>Ou via GitHub si le projet est public.</p>
+
+  </main>
+  <script src="{{ static_url('src/script.js') }}"></script>
+</body>
+</html>

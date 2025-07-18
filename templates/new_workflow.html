@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="{{ url_for('static', filename='favicon.gif') }}">
+<title>Créer un nouveau workflow</title>
+<link rel="stylesheet" href="{{ static_url('style.css') }}" />
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Créer un workflow</h1>
+  <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
+  <a href="{{ url_for('index') }}" class="btn">← Retour</a>
+</header>
+
+<main class="form-container">
+  <form id="workflow-form" method="post" action="{{ url_for('new_workflow') }}">
+    <h2>Créer un nouveau workflow</h2>
+
+    <label for="name">Nom du workflow :</label>
+    <input type="text" id="name" name="name" required minlength="3" placeholder="ex: Sécurisation AD" />
+
+    <label for="description">Description :</label>
+    <textarea id="description" name="description" rows="2" placeholder="Résumé du workflow..."></textarea>
+
+    <h3>Étapes du workflow</h3>
+    <div id="steps-container"></div>
+
+    <button type="button" class="btn" onclick="addStep()">+ Ajouter une étape</button>
+
+    <!-- Champ JSON caché généré automatiquement -->
+    <textarea id="steps-json" name="steps" hidden required></textarea>
+
+    <h4>Prévisualisation JSON</h4>
+    <pre id="preview-output" style="background:#000000;padding:1rem; border-radius:6px;color: white;"></pre>
+
+    <button type="submit" class="btn primary">Créer le workflow</button>
+  </form>
+</main>
+
+<script>
+let stepCount = 0;
+
+function addStep(data = {}) {
+  const container = document.getElementById("steps-container");
+  const div = document.createElement("div");
+  div.classList.add("step-block");
+  const id = `step-${stepCount++}`;
+  div.innerHTML = `
+    <fieldset style="margin-bottom: 1rem; border:1px solid #ccc; padding:1rem; border-radius:5px;">
+      <legend>Étape</legend>
+      <label>Titre :</label>
+      <input type="text" class="step-title" value="${data.title || ""}" required />
+
+      <label>Type :</label>
+      <select class="step-type">
+        <option value="action" ${data.type === "action" ? "selected" : ""}>Action</option>
+        <option value="evidence" ${data.type === "evidence" ? "selected" : ""}>Evidence</option>
+        <option value="checkpoint" ${data.type === "checkpoint" ? "selected" : ""}>Checkpoint</option>
+      </select>
+
+      <label>Description courte :</label>
+      <input type="text" class="step-description" value="${data.description || ""}" required />
+
+      <label>Description longue :</label>
+      <textarea class="step-longdesc" rows="3">${data.long_description || ""}</textarea>
+
+      <label>Étapes suivantes (IDs séparés par des virgules) :</label>
+      <input type="text" class="step-next" value="${(data.next || []).join(',')}" placeholder="ex: step2,step3" />
+
+      <button type="button" onclick="this.closest('.step-block').remove(); updatePreview()">🗑 Supprimer</button>
+    </fieldset>
+  `;
+  container.appendChild(div);
+  updatePreview();
+}
+
+function updatePreview() {
+  const blocks = document.querySelectorAll(".step-block");
+  const steps = [];
+
+  blocks.forEach((block, index) => {
+    const title = block.querySelector(".step-title").value.trim();
+    const type = block.querySelector(".step-type").value.trim();
+    const desc = block.querySelector(".step-description").value.trim();
+    const longdesc = block.querySelector(".step-longdesc").value.trim();
+    const next = block.querySelector(".step-next").value.trim().split(',').map(n => n.trim()).filter(Boolean);
+
+    const step = {
+      id: `step${index + 1}`,
+      title: title,
+      type: type,
+      description: desc,
+      long_description: longdesc,
+      next: next
+    };
+    steps.push(step);
+  });
+
+  document.getElementById("steps-json").value = JSON.stringify(steps, null, 2);
+  document.getElementById("preview-output").textContent = document.getElementById("steps-json").value;
+}
+
+document.getElementById("workflow-form").addEventListener("input", updatePreview);
+</script>
+
+
+</main>
+
+
+<script src="{{ static_url('src/new_workflow.js') }}"></script>
+<script src="{{ static_url('src/script.js') }}"></script>
+
+</body>
+</html>

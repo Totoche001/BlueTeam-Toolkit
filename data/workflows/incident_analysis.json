@@ -1,0 +1,141 @@
+{
+  "id": "incident_analysis",
+  "name": "Analyse d'activité suspecte ou compromission",
+  "version": "1.0",
+  "description": "Méthodologie pour identifier, analyser et traiter une compromission ou une activité inhabituelle sur un système Windows ou Linux.",
+  "tags": ["incident", "piratage", "analyse", "linux", "windows", "compromission"],
+  "meta": {
+    "created_by": "admin",
+    "created_at": "2025-07-17"
+  },
+  "flow": [
+    {
+      "id": "trigger_windows",
+      "title": "Détection initiale (Windows)",
+      "type": "evidence_windows",
+      "description": "Identification de l’anomalie sur un hôte Windows.",
+      "long_description": "Utilisez l’Observateur d’événements pour rechercher :\n- ID 4624/4625 (connexions réussies ou échouées)\n- ID 4688 (création de processus)\n- Activité antivirus (Defender, ESET...)\n\nCommandes utiles :\n<pre>powershell\nGet-EventLog -LogName Security -Newest 50\n</pre>\n\n🔗 Voir aussi : [Sysmon pour Windows](https://learn.microsoft.com/fr-fr/sysinternals/downloads/sysmon)",
+      "next": ["scope_windows"]
+    },
+    {
+      "id": "trigger_linux",
+      "title": "Détection initiale (Linux)",
+      "type": "evidence_linux",
+      "description": "Détection d’activité inhabituelle sur un système Linux (debian).",
+      "long_description": "- Examiner les logs : <pre>/var/log/auth.log</pre><pre>/var/log/syslog</pre><pre>/var/log/messages</pre>- Vérifier les connexions SSH suspectes :<pre>bash\ntail -n 100 /var/log/auth.log | grep ssh\n</pre>- Processus anormaux : <pre>ps aux | grep -v root</pre>- Utiliser <pre>auditd</pre><pre>logwatch</pre> Pour Arch (et dérivé, ex: manjaro):\n- Examiner les logs via <code>journalctl</code>\nCommandes utiles :<pre>journalctl -xe</pre><pre>journalctl _COMM=sshd</pre><pre>journalctl --since '1 hour ago'</pre>Pour détecter les connexions SSH :<pre>journalctl -u sshd | grep 'Failed|Accepted'</pre>Détection de processus anormaux :<pre>ps aux --sort=-%cpu | head</pre>Autres outils :\n- <code>auditd</code> (à activer manuellement sur Arch)\n- <code>logwatch</code> (peut être installé via AUR)\n- <code>systemd-analyze</code> pour les lenteurs de démarrage suspectes",
+      "next": ["scope_linux"]
+    },
+    {
+      "id": "scope_windows",
+      "title": "Délimiter l'étendue (Windows)",
+      "type": "action_windows",
+      "description": "Vérifier si d'autres comptes ou machines sont affectés.",
+      "long_description": "- Lister les utilisateurs actifs : `query user`\n- Vérifier les connexions réseau : `netstat -ano`\n- Regarder les processus inconnus : `tasklist /v`\n- Ouvrir le gestionnaire de tâches avec `Ctrl+Shift+Esc`\n\nUtiliser aussi :\n```powershell\nGet-Process | Sort CPU -Descending\n```",
+      "next": ["evidence_windows"]
+    },
+    {
+      "id": "scope_linux",
+      "title": "Délimiter l'étendue (Linux)",
+      "type": "action_linux",
+      "description": "Analyser si l’incident est local ou global.",
+      "long_description": "- Qui est connecté : `who`, `w`, `last`\n- Ports ouverts : `ss -tuna`, `netstat -plnt`\n- Services actifs : `systemctl`, `chkconfig`, `ps aux`",
+      "next": ["evidence_linux"]
+    },
+    {
+      "id": "evidence_windows",
+      "title": "Collecte des preuves (Windows)",
+      "type": "evidence_windows",
+      "description": "Sauvegarder les journaux avant d’agir.",
+      "long_description": "- Exporter les journaux via Event Viewer (clic droit > Enregistrer).\n- Copier les fichiers `.evtx` :\n```powershell\nwevtutil epl Security C:\\Temp\\security_log.evtx\n```\n- Dump mémoire (optionnel) avec Sysinternals : `procdump`, `RAMCapturer`",
+      "next": ["pivot_windows"]
+    },
+    {
+      "id": "evidence_linux",
+      "title": "Collecte des preuves (Linux)",
+      "type": "evidence_linux",
+      "description": "Archiver les fichiers utiles à l’analyse.",
+      "long_description": "- Copier les fichiers log :\n```bash\ncp /var/log/auth.log /tmp/\ncp -r ~/.bash_history /tmp/\n```\n- Lister les fichiers récents :\n```bash\nfind / -type f -mtime -1 2>/dev/null\n```",
+      "next": ["pivot_linux"]
+    },
+    {
+      "id": "pivot_windows",
+      "title": "Analyse chronologique (Windows)",
+      "type": "action_windows",
+      "description": "Reconstituer l’ordre des actions malveillantes.",
+      "long_description": "- Utiliser les horodatages des journaux\n- Rechercher des scripts ou fichiers suspects dans `%TEMP%`, `%APPDATA%`\n- Examiner les clés Run / RunOnce dans le Registre",
+      "next": ["isolate_windows"]
+    },
+    {
+      "id": "pivot_linux",
+      "title": "Analyse chronologique (Linux)",
+      "type": "action_linux",
+      "description": "Comprendre comment l’intrus a agi.",
+      "long_description": "- Examiner `~/.bash_history`, `~/.ssh/authorized_keys`\n- Regarder les scripts ou binaires dans `/tmp`, `/dev/shm`, `/var/tmp`\n- Vérifier les tâches cron suspectes : `crontab -l`, `/etc/cron*`",
+      "next": ["isolate_linux"]
+    },
+    {
+      "id": "isolate_windows",
+      "title": "Isolement du système (Windows)",
+      "type": "action_windows",
+      "description": "Empêcher la propagation.",
+      "long_description": "- Déconnecter du réseau (`ipconfig /release`, ou désactiver l’interface).\n- Désactiver les comptes suspects :\n```powershell\ndisable-localuser <nom>\n```",
+      "next": ["fix_windows"]
+    },
+    {
+      "id": "isolate_linux",
+      "title": "Isolement du système (Linux)",
+      "type": "action_linux",
+      "description": "Limiter l'accès de l’attaquant.",
+      "long_description": "- Fermer la connexion SSH : `kill -9 <PID>`\n- Désactiver temporairement le réseau :\n```bash\nip link set eth0 down\n```\n- Changer le mot de passe root : `passwd`",
+      "next": ["fix_linux"]
+    },
+    {
+      "id": "fix_windows",
+      "title": "Nettoyage et correction (Windows)",
+      "type": "action_windows",
+      "description": "Supprimer les portes dérobées.",
+      "long_description": "- Supprimer les tâches planifiées suspectes : `schtasks /query`\n- Supprimer les services inconnus : `services.msc`\n- Nettoyer les clefs Registre liées à l’autostart :\n```powershell\nGet-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'\n```",
+      "next": ["harden_windows"]
+    },
+    {
+      "id": "fix_linux",
+      "title": "Nettoyage et correction (Linux)",
+      "type": "action_linux",
+      "description": "Supprimer les éléments malveillants.",
+      "long_description": "- Supprimer les utilisateurs inconnus de `/etc/passwd`\n- Supprimer les services inconnus dans `/etc/systemd/system`\n- Nettoyer les clés SSH : `~/.ssh/authorized_keys`",
+      "next": ["harden_linux"]
+    },
+    {
+      "id": "harden_windows",
+      "title": "Durcissement post-incident (Windows)",
+      "type": "action_windows",
+      "description": "Sécuriser durablement la machine.",
+      "long_description": "- Appliquer les dernières mises à jour Windows\n- Mettre en place LAPS\n- Désactiver les comptes Admin inutilisés\n- Activer la journalisation avancée via GPO",
+      "next": ["report_windows"]
+    },
+    {
+      "id": "harden_linux",
+      "title": "Durcissement post-incident (Linux)",
+      "type": "action_linux",
+      "description": "Sécurisation permanente de l'hôte.",
+      "long_description": "- Appliquer les mises à jour : `apt upgrade`, `yum update`\n- Restreindre l’accès SSH :\n```bash\nPermitRootLogin no\nAllowUsers admin1\n```",
+      "next": ["report_linux"]
+    },
+    {
+      "id": "report_windows",
+      "title": "Rapport d’incident (Windows)",
+      "type": "checkpoint_windows",
+      "description": "Rédiger le rapport de l’incident traité.",
+      "long_description": "- Horodatage, comptes affectés, failles exploitées\n- Actions entreprises, durée d’impact\n- Document Word / Markdown / outil interne de suivi",
+      "next": []
+    },
+    {
+      "id": "report_linux",
+      "title": "Rapport d’incident (Linux)",
+      "type": "checkpoint_linux",
+      "description": "Documenter et consigner l’incident.",
+      "long_description": "- Description de l’attaque, vecteurs d’entrée, durée\n- Preuves conservées, actions correctives, recommandations",
+      "next": []
+    }
+  ]
+}

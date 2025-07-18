@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="{{ url_for('static', filename='favicon.gif') }}">
+<title>Liste des workflows</title>
+<link rel="stylesheet" href="{{ static_url('style.css') }}" />
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Workflows</h1>
+  <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
+  <a href="{{ url_for('new_workflow') }}" class="btn primary">+ Créer un workflow</a>
+  <nav class="topnav">
+  <a href="{{ url_for('index') }}">Accueil</a>
+  <a href="{{ url_for('contact') }}">Contact</a>
+  <a href="javascript:history.back()">⬅ Retour</a>
+</nav>
+</header>
+
+<main class="grid-container">
+  {% for wf in workflows %}
+  <article class="workflow-card">
+    <h2>{{ wf.name }}</h2>
+    <p>{{ wf.description or "Pas de description" }}</p>
+    <a href="{{ url_for('view_workflow', workflow_id=wf.id) }}" class="btn">Voir</a>
+  </article>
+  {% else %}
+  <p>Aucun workflow trouvé.</p>
+  {% endfor %}
+</main>
+
+<script src="{{ static_url('src/script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+    "id": "incident_response",
+    "name": "Réponse à un incident - Poste utilisateur",
+    "description": "Procédure initiale lors d'une compromission.",
+    "version": "1.0",
+    "tags": [
+        "incident",
+        "poste",
+        "urgence"
+    ],
+    "meta": {
+        "created_at": "2025-07-17",
+        "created_by": "admin"
+    },
+    "flow": [
+        {
+            "id": "iso",
+            "title": "Isoler la machine",
+            "description": "Déconnecter du réseau pour éviter la propagation.",
+            "type": "action",
+            "next": [
+                "evidence"
+            ],
+            "long_description": "Dans le cas d'une compromission suspectée, il est crucial de couper toute connectivité réseau afin de contenir la menace. Cela peut impliquer de débrancher le câble Ethernet, de désactiver le Wi-Fi ou de bloquer les flux via le pare-feu.",
+            "code": "sudo ifconfig eth0 down  # Linux\nnetsh interface set interface \"Ethernet\" admin=disable  # Windows",
+            "images": [
+                "/static/img/iso-example1.jpg",
+                "/static/img/iso-diagram.jpg"
+            ]
+        },
+        {
+            "id": "joke",
+            "title": "Private Joke",
+            "description": "Faire une blague.",
+            "long_description": "Insérer ici une touche d’humour pour détendre l’ambiance. Ne pas faire ça en prod.",
+            "type": "joke",
+            "next": [
+                "evidence"
+            ]
+        },
+        {
+            "id": "evidence",
+            "title": "Préserver les preuves",
+            "description": "Faire une image disque/RAM.",
+            "long_description": "Créer une image disque avec `dd` ou `FTK Imager`, sauvegarder la RAM avec `winpmem` ou `avml`. Ne pas modifier le système.",
+            "code": "dd if=/dev/sda of=/mnt/usb/incident_disk.img bs=4M\navml -o /mnt/usb/memory.lime",
+            "images": [
+                "/static/img/imaging_example.jpg"
+            ],
+            "type": "action",
+            "next": [
+                "rapport"
+            ]
+        },
+        {
+            "id": "rapport",
+            "title": "Rapport d'incident",
+            "description": "Documenter, alerter le RSSI.",
+            "long_description": "Rédiger un rapport détaillé de l’incident avec chronologie, éléments récupérés, mesures prises. Informer le RSSI.\nvoici un exemple de rapport: <a href='https://62.235.226.69:8083/?page=apprentissage/intro' target='_blank'>Rapport Becode</a>",
+            "type": "checkpoint",
+            "next": []
+        }
+    ]
+}
