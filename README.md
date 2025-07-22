@@ -24,6 +24,15 @@ Ce projet est une application web simple permettant de créer, visualiser, et su
 ```bash
 git clone https://github.com/Totoche001/BlueTeam-Toolkit/.git
 cd BlueTeam-Toolkit
+# Installer les dépendances
+sudo apt install python-flask || sudo pacman -S python-flask
+python3 app.py
+```
+**Attention pour flask**:
+*A placer dans app.py*
+
+```python
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ### 2. Créer un environnement Python (optionnel sous linux)
