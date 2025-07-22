@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, f
 import json
 import os
 from datetime import datetime
-
+# Ce site web n'est executable qu'en local si la clé secrete est indispensable pour que flask fonctionne, Ce n'est pas une information "secrète" dont un pirate a besoin pour avoir accès à ces données (sauf si vous executer ce site dans un vrai serveur)
 app = Flask(__name__)
 app.secret_key = "7b3393e305aabe6b7cd4415b2215f90bf362d381866a8a6e3734e1568cc7dac0"
 WORKFLOWS_DIR = "data/workflows"

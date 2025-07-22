@@ -1,0 +1,66 @@
+{
+    "id": "proteger_linux",
+    "name": "Protéger un système Linux",
+    "description": "Comment sécuriser un système Linux basé sur CentOS en auditant et configurant plusieurs aspects critiques du système.",
+    "version": "1.0",
+    "tags": [
+        "Linux",
+        "Sécurité",
+        "CentOS"
+    ],
+    "meta": {
+        "created_at": "2025-07-17",
+        "created_by": "admin"
+    },
+    "flow": [
+        {
+            "id": "audit_boot",
+            "title": "Auditez le bootloader, les options du noyau et ses modules",
+            "description": "Vérifiez la sécurité du processus de démarrage en auditant Grub et les options du noyau.",
+            "type": "action",
+            "next": [
+                "opt_modules"
+            ],
+            "long_description": "login:root\nmdp:root123\n\n Allumez le système virtuel et ensuite vous connecter a ce \"serveur\" en ssh avec par ex putty ou remmina; avec le même login et mdp. \n\n- Vérifiez les permissions des fichiers dans /etc/grub.d/ et appliquez des droits restrictifs (700) pour limiter l'accès. \n- Configurez un mot de passe chiffré pour le shell de Grub en modifiant le fichier 01_users.\n- Activez l'option iommu=force dans le fichier /etc/default/grub pour forcer la protection mémoire via IOMMU.",
+            "code": "# Vérification des permissions\nls -la /etc/grub.d/\n\n# Application des droits restrictifs\nchmod -R 700 /etc/grub.d\n\n# Création d'un mot de passe chiffré pour Grub \n[root@fichesproduits grub.d]# grub2-mkpasswd-pbkdf2\nEntrez le mot de passe :\nEntrez de nouveau le mot de passe :\nLe hachage PBKDF2 du mot de passe est grub.pbkdf2.sha512.10000....\n#selectionnez le mot de passe et faites un clic droit pour copier\n\n# Ajout de l'utilisateur admin dans le fichier 01_users :\n# vi /etc/grub.d/01_users\nset superusers=\"admin\"\npassword_pbkdf2 admin grub.pbkdf2.sha512.10000.... \n# Faites un clic droit pour coller\n\n# Mise à jour du fichier de configuration Grub \ngrub2-mkconfig -o /boot/grub2/grub.cfg\n\n Ajouter IOMMU\n[root@fichesproduits grub.d]# vi /etc/default/grub # Si jamais, pour inserer un texte presser la touche \"i\"\nGRUB_CMDLINE_LINUX=\"crashkernel=auto rd.lvm.lv=centos_fichesproduits/root rd.lvm.lv=centos_fichesproduits/swap rhgb quiet iommu=force\"\n\nPour quitter vi, faites \"ctrl+c\" pour quitter le mode inserer et ensuite faites \":x\"",
+            "images": []
+        },
+        
+        {
+            "id": "opt_modules",
+            "title": "Configurer la gestion dynamique des modules noyau",
+            "description": "Assurez-vous que le système ne permet pas le chargement non autorisé de modules noyau en cours d'exécution.",
+            "type": "action",
+            "next": [
+                "audit_virtuel"
+            ],
+            "long_description": "- Vérifiez l'état actuel du chargement dynamique de modules avec <code>sysctl kernel.modules_disabled</code>.\n- Bloquez le chargement dynamique de modules en configurant <code>kernel.modules_disabled=1</code>.",
+            "code": "# Vérification actuelle\nsysctl kernel.modules_disabled \n\n# Bloquer le chargement dynamique (courant)\nsysctl -w kernel.modules_disabled=1 \n\n# Persister la configuration pour les redémarrages futurs \necho \"kernel.modules_disabled = 1\" >> /etc/sysctl.conf",
+            "images": []
+        },
+        {
+            "id": "audit_virtuel",
+            "title": "Auditez les consoles virtuelles",
+            "description": "Comment vérifier que la connexion root est empêchée par défaut depuis ces consoles, Comment vérifier que le processus de connexion résiste à une attaque par dictionnaire.",
+            "type": "action",
+            "next": [
+                "ctrl+alt+delete"
+            ],
+            "long_description": "Les consoles virtuelles Linux sont intégrées au noyau et permettent d'émuler d'anciens terminaux, comme le VT100, pour interagir avec des systèmes hérités. Accessibles via la combinaison Ctrl+Alt+Fn (où n désignera la console utilisée), elles offrent par défaut sept interfaces : six en mode texte (avec un prompt de connexion géré par getty et /bin/login) et une septième, souvent dédiée à l'interface graphique (X Windows System). Ces consoles, accessibles physiquement, peuvent représenter une faille de sécurité si leur accès n'est pas contrôlé. La gestion des connexions est confiée au module PAM, configurable dans le répertoire <code>/etc/pam.d/</code>, et sa configuration actuelle peut être consultée avec la commande <code>cat /etc/pam.d/system-auth</code> (ou équivalent).\n\nLe processus utilise le module pam_securetty.so, qui s'appuie sur le fichier /etc/securetty pour lister les terminaux autorisant la connexion en tant qu'utilisateur root (sous forme de périphériques comme console, vc/1, etc.). Par défaut, ce fichier contient de nombreuses entrées, ce qui pose un risque de sécurité. Recommandation critique : vider le fichier (echo > /etc/securetty) pour bloquer la connexion root en console virtuelle (tout en permettant une élévation de privilèges via su avec un autre utilisateur).\nLe fichier <code>/etc/pam.d/system-auth</code>, utilisé pour l'authentification, inclut notamment le module <code>pam_faildelay.so</code>, qui impose un délai minimal entre les tentatives de connexion. Recommandation : augmenter ce délai (par exemple à 5 ou 10 secondes) pour ralentir les attaques par diction (force brute).",
+            "code": "# Videz le contenu du fichier /etc/securetty afin de bloquer toute connexion avec l'utilisateur root depuis une console virtuelle\necho > /etc/securetty \n\n# Augmentez l'intervalle minimal de temps entre chaque tentative de connexion sur le module pam_faildelay.so du fichier /etc/pam.d/system-auth à 5 ou 10 secondes afin de ralentir les attaques par dictionnaire\n[root@fichesproduits ~]# cat /etc/pam.d/system-auth\n...\nauth required pam_faildelay.so delay=5000000\n... ",
+            "images": []
+        },
+        {
+            "id": "ctrl+alt+delete",
+            "title": "Empêchez le Ctrl+Alt+Supp fatidique",
+            "description": "Comment redémarrer le serveur à partir des raccourcis clavier Ctrl+Alt+Fn.",
+            "type": "action",
+            "next": [
+                "fin"
+            ],
+            "long_description": "Linux hérite des systèmes UNIX, où certaines combinaisons de touches (appelées Secure Attention Key ou Magic System Request Key) permettaient à l'utilisateur d'exécuter des actions critiques via le clavier. Par exemple, Ctrl+Alt+Supp (ou SysRq) était utilisé pour redémarrer la machine, une fonctionnalité risquée si elle est accessible physiquement sans restriction.\n\nD'autres combinaisons dangereuses existent (<a href='https://doc.ubuntu-fr.org/touches_magiques'>ubuntu-magic-touch</a>) ; leur désactivation est recommandée pour renforcer la sécurité du système contre les accès physiques non autorisés.",
+            "code": "# Désactiver Ctrl+Alt+Supp : En créant un lien symbolique vers /dev/null dans le système d'init\nln -sf /dev/null /etc/systemd/system/ctrl-alt-del.target \n\n# Désactiver toutes les Magic Keys : Via la commande \nsysctl -w kernel.sysrq=0\n# Pour prise en compte au prochain démarrage\necho \"kernel.sysrq=0\" >> /etc/sysctl.conf \nou encore en modifiant le noyau (fichier sysrq.c) et de recompiler.",
+            "images": []
+        }
+    ]
+}

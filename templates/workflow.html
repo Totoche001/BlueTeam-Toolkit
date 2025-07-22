@@ -13,15 +13,22 @@
 <body>
 
   <header class="topbar">
-    <h1>{{ workflow.name }}</h1>
-    <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
-    <button id="edit-toggle">Modifier</button>
-    <button id="save-btn" style="display:none;">Sauvegarder</button>
+    <div class="title-description">
+      <h1>{{ workflow.name }}</h1>
+      <span>{{ workflow.description_long | default('') | replace('\n', '<br>') | safe}}</span>
+    </div>
+    <div class="top-right">
+      <div class="button-group">
+        <button id="theme-toggle" aria-label="Basculer thème clair/sombre">🌙</button>
+        <button id="edit-toggle">Modifier</button>
+        <button id="save-btn" style="display:none;">Sauvegarder</button>
+      </div>
       <nav class="topnav">
-  <a href="{{ url_for('index') }}">Accueil</a>
-  <a href="{{ url_for('contact') }}">Contact</a>
-  <a href="javascript:history.back()">⬅ Retour</a>
-</nav>
+        <a href="{{ url_for('index') }}">Accueil</a>
+        <a href="{{ url_for('contact') }}">Contact</a>
+        <a href="javascript:history.back()">⬅ Retour</a><br>
+      </nav>
+    </div>
   </header>
 
   <div class="container">
@@ -76,8 +83,8 @@
           {% if next_step %}
           <a href="#step-{{ next_step.id }}" class="step-link">
             {{ next_step.title }}
-            <span class="step-type-badge type-{{ next_step.type|default('action') }}">{{
-              next_step.type|default('action') }}</span>
+            <!--<span class="step-type-badge type-{{ next_step.type|default('action') }}">{{
+              next_step.type|default('action') }}</span>-->
           </a>{% if not loop.last %}, {% endif %}
           {% else %}
           <span>{{ next_id }}</span>{% if not loop.last %}, {% endif %}
@@ -97,9 +104,9 @@
 
   <!--<div id="timeline" class="timeline-view"></div>-->
 
-<script>
-  //const WORKFLOW_DATA = {{ workflow | tojson | safe }};
-</script>
+  <script>
+    //const WORKFLOW_DATA = {{ workflow | tojson | safe }};
+  </script>
   <!--<script src="{{ static_url('src/timeline.js') }}"></script>-->
   <script src="{{ static_url('src/script.js') }}"></script>
 

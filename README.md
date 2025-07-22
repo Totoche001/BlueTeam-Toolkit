@@ -22,8 +22,8 @@ Ce projet est une application web simple permettant de créer, visualiser, et su
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/ton-utilisateur/workflow-manager.git
-cd workflow-manager
+git clone https://github.com/Totoche001/BlueTeam-Toolkit/.git
+cd BlueTeam-Toolkit
 ```
 
 ### 2. Créer un environnement Python (optionnel sous linux)
@@ -136,6 +136,7 @@ Le format est un simple JSON structuré :
   "id": "exemple",
   "name": "Nom lisible",
   "description": "Brève description",
+  "description_long":"description plus complète sous le titre dans le workflow",
   "flow": [
     {
       "id": "step1",
@@ -172,8 +173,9 @@ app.secret_key = "une_clé_secrète_très_complexe"
 
 Cela permet :
 
-* Le bon fonctionnement de flash()
+* Le bon fonctionnement de flask()
 * La gestion future des sessions utilisateur (si jamais)
+* Ce site reste local donc s'il y a une alerte github ou autre signalant une clé secrète utilisable par tous, on peut outrepasser (sauf si vous executer ce site sur un vrai serveur)
 
 ### Exemple de workflow fourni
 
