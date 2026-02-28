@@ -3,7 +3,7 @@
   "name": "Réinitialiser un mot de passe sur un OS Linux via le Grub",
   "version": "1.0",
   "description": "Réinitialisation MDP du compte root sous OS Linux ",
-  "description_long":"copie de https://neptunet.fr/grub-reinit-mdp/\r\nQuoi de plus rageant que de taper un mot de passe sous Linux et de se prendre en retour un « échec de l’authentification », « login incorrect » ou (mon préféré) « désolé l’authentification par mot de passe n’a pas fonctionné » (alors oui sous Windows aussi c’est énervant mais là on va parler uniquement Linux 😊)\r\n\r\nHeureusement pour nous, réinitialiser un mot de passe perdu ou oublié quand on se retrouve bloqué à la fenêtre de connexion est possible, petite astuce du jour sur le sujet !",
+  "description_long":"copie de https://neptunet.fr/grub-reinit-mdp/\r\n(si jamais le site est indisponible)\nQuoi de plus rageant que de taper un mot de passe sous Linux et de se prendre en retour un « échec de l’authentification », « login incorrect » ou (mon préféré) « désolé l’authentification par mot de passe n’a pas fonctionné » (alors oui sous Windows aussi c’est énervant mais là on va parler uniquement Linux 😊)\r\n\r\nHeureusement pour nous, réinitialiser un mot de passe perdu ou oublié quand on se retrouve bloqué à la fenêtre de connexion est possible, petite astuce du jour sur le sujet !",
   "tags": [],
   "meta": {
     "created_by": "admin",
